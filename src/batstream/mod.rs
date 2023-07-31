@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! Battery Events Streams
+pub mod acpi;
 pub mod polling;
 mod sysfs;
 pub mod udev;
+mod udev_bat;
 
 use bounded_integer::BoundedU8;
 

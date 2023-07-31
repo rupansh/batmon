@@ -42,4 +42,5 @@ pub struct Args {
 pub enum Backend {
     Udev,
     Polling,
+    Acpi,
 }

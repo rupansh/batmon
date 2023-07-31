@@ -14,6 +14,7 @@ use tokio_udev::{AsyncMonitorSocket, Device, Event, EventType, MonitorBuilder};
 
 use super::{
     sysfs::{BAT_BASE_PATH, BAT_SUBSYS},
+    udev_bat::extract_battery_cap,
     AdapterStatus, BatEvent, BatLvl,
 };
 
@@ -40,7 +41,7 @@ impl UdevStream {
             .match_subsystem(BAT_SUBSYS)?
             .listen()?
             .try_into()?;
-        let first_lvl = Self::handle_battery(&battery);
+        let first_lvl = extract_battery_cap(&battery);
 
         Ok(Self {
             battery_path,
@@ -48,16 +49,6 @@ impl UdevStream {
             first_lvl: Some(first_lvl),
             monitor,
         })
-    }
-
-    /// extract battery capacity
-    fn handle_battery(ev: &Device) -> BatLvl {
-        ev.property_value("POWER_SUPPLY_CAPACITY")
-            .expect("battery does not advertise capacity?!")
-            .to_str()
-            .expect("battery capacity is not valid utf8?!")
-            .parse::<BatLvl>()
-            .expect("battery capacity is not a valid u8?!")
     }
 
     /// extract adapter status
@@ -81,7 +72,7 @@ impl UdevStream {
         }
 
         if event.syspath() == self.battery_path {
-            Some(BatEvent::Battery(Self::handle_battery(&event)))
+            Some(BatEvent::Battery(extract_battery_cap(&event)))
         } else if event.syspath() == self.adapter_path {
             Some(BatEvent::Adapter(Self::handle_adapter(&event)))
         } else {

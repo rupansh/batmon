@@ -2,17 +2,16 @@
 // Copyright 2023 developers of the `batmon` project
 // SPDX-License-Identifier: MPL-2.0
 
-
 use std::{error::Error, time::Duration};
 
 use args::Args;
-use batstream::{polling::PollingStream, udev::UdevStream, BatEvent};
+use batstream::{acpi::AcpiStream, polling::PollingStream, udev::UdevStream, BatEvent};
 use clap::Parser;
 use futures_lite::{Stream, StreamExt};
 use notif::notify::NotifyConsumer;
 use priority::PriorityThreshold;
 
-use crate::{notif::Notification, priority::EvPriority};
+use crate::{notif::Notification, priority::EvPriority, batstream::AdapterStatus};
 
 mod args;
 mod batstream;
@@ -27,11 +26,19 @@ async fn stream_loop<E: Error>(
 ) {
     tokio::pin!(stream);
 
+    let mut adapter_connected = false;
     while let Some(event) = stream.next().await.transpose().unwrap() {
-        let priority = if let BatEvent::Battery(lvl) = event {
-            threshold.priority(lvl)
-        } else {
-            Some(EvPriority::Low)
+        let priority = match event {
+            BatEvent::Battery(lvl) if !adapter_connected => threshold.priority(lvl),
+            BatEvent::Adapter(AdapterStatus::Connected) => {
+                adapter_connected = true;
+                Some(EvPriority::Low)
+            },
+            BatEvent::Adapter(AdapterStatus::Disconnected) => {
+                adapter_connected = false;
+                Some(EvPriority::Low)
+            },
+            _ => None,
         };
         let Some(priority) = priority else {
             continue;
@@ -45,6 +52,7 @@ async fn stream_loop<E: Error>(
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     let args = Args::parse();
     let consumer = NotifyConsumer::new("batmon".into());
     let threshold = PriorityThreshold {
@@ -63,6 +71,10 @@ async fn main() {
         }
         args::Backend::Udev => {
             let stream = UdevStream::new(args.battery, args.adapter).unwrap();
+            stream_loop(stream, consumer, threshold).await;
+        }
+        args::Backend::Acpi => {
+            let stream = AcpiStream::new(&args.battery).await;
             stream_loop(stream, consumer, threshold).await;
         }
     }
