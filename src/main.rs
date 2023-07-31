@@ -11,7 +11,7 @@ use futures_lite::{Stream, StreamExt};
 use notif::notify::NotifyConsumer;
 use priority::PriorityThreshold;
 
-use crate::{notif::Notification, priority::EvPriority, batstream::AdapterStatus};
+use crate::{batstream::AdapterStatus, notif::Notification, priority::EvPriority};
 
 mod args;
 mod batstream;
@@ -33,11 +33,11 @@ async fn stream_loop<E: Error>(
             BatEvent::Adapter(AdapterStatus::Connected) => {
                 adapter_connected = true;
                 Some(EvPriority::Low)
-            },
+            }
             BatEvent::Adapter(AdapterStatus::Disconnected) => {
                 adapter_connected = false;
                 Some(EvPriority::Low)
-            },
+            }
             _ => None,
         };
         let Some(priority) = priority else {
@@ -74,7 +74,7 @@ async fn main() {
             stream_loop(stream, consumer, threshold).await;
         }
         args::Backend::Acpi => {
-            let stream = AcpiStream::new(&args.battery).await;
+            let stream = AcpiStream::new(&args.battery).await.unwrap();
             stream_loop(stream, consumer, threshold).await;
         }
     }

@@ -1,4 +1,8 @@
+// Copyright 2023 developers of the `batmon` project
+// SPDX-License-Identifier: MPL-2.0
+
 //! ACPI events battery stream backed by netlink
+mod error;
 
 use std::{
     iter::FilterMap,
@@ -23,6 +27,7 @@ use self::{
 };
 
 use super::{sysfs::BAT_BASE_PATH, udev_bat::extract_battery_cap, AdapterStatus, BatEvent};
+pub use error::*;
 mod acpi_event;
 mod acpi_ids;
 
@@ -45,24 +50,21 @@ pub struct AcpiStream {
 }
 
 impl AcpiStream {
-    pub async fn new(battery_device: &str) -> Self {
+    pub async fn new(battery_device: &str) -> Result<Self> {
         let battery_path = Path::new(BAT_BASE_PATH).join(battery_device);
-        let (family_id, group_id) = get_family_and_group()
-            .await
-            .expect("acpi_event family not found");
-        let mut socket =
-            TokioSocket::new(NETLINK_GENERIC).expect("failed to create netlink socket");
+        let (family_id, group_id) = get_family_and_group().await?;
+        let mut socket = TokioSocket::new(NETLINK_GENERIC)?;
         let inner_socket = socket.socket_mut();
         let addr = SocketAddr::new(0, group_bitmap(group_id));
         inner_socket.bind(&addr).unwrap();
         inner_socket.set_non_blocking(true).unwrap();
 
-        Self {
+        Ok(Self {
             family_id,
             netlink: NetlinkFramed::new(socket),
-            battery: Device::from_syspath(&battery_path).expect("failed to get battery device"),
+            battery: Device::from_syspath(&battery_path)?,
             buf: None,
-        }
+        })
     }
 
     fn next_buf(&mut self) -> Option<BatEvent> {
@@ -85,7 +87,7 @@ impl AcpiStream {
 }
 
 impl Stream for AcpiStream {
-    type Item = std::io::Result<BatEvent>;
+    type Item = Result<BatEvent>;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         if let Some(ev) = self.next_buf() {
@@ -116,7 +118,7 @@ impl Stream for AcpiStream {
             self.buf = Some(buf);
             let Some(ev) = self.next_buf() else {
                 continue;
-            }; 
+            };
             return Poll::Ready(Some(Ok(ev)));
         }
     }

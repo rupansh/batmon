@@ -1,3 +1,6 @@
+// Copyright 2023 developers of the `batmon` project
+// SPDX-License-Identifier: MPL-2.0
+
 use std::ffi::{c_char, CStr};
 
 use arrayvec::ArrayString;
