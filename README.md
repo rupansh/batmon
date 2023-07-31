@@ -30,6 +30,7 @@ Use this if neither Udev nor Acpi backends work for you.
 A systemd service is provided `batmon.service`. Feel free to modify it to change thresholds or other settings.
 
 ```bash
+cargo install --path .
 sudo install -m 0644 batmon.service /lib/systemd/user/
 systemctl --user enable --now batmon.service
 ```
