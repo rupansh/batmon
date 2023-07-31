@@ -94,17 +94,18 @@ impl Stream for PollingStream {
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.project();
 
+        if let Poll::Ready(adp) = handle_item(this.adapter_state, cx, |v| {
+            BatEvent::Adapter(parse_adapter(v))
+        }) {
+            return Poll::Ready(Ok(adp).transpose());
+        }
+
         if let Poll::Ready(bat) = handle_item(this.battery_state, cx, |v| {
             BatEvent::Battery(parse_battery(v))
         }) {
             return Poll::Ready(Ok(bat).transpose());
         }
 
-        if let Poll::Ready(adp) = handle_item(this.adapter_state, cx, |v| {
-            BatEvent::Adapter(parse_adapter(v))
-        }) {
-            return Poll::Ready(Ok(adp).transpose());
-        }
         Poll::Pending
     }
 }
