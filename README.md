@@ -25,6 +25,15 @@ Subscribe to the kernel's netlink socket for ACPI events, This may not work if u
 
 Use this if neither Udev nor Acpi backends work for you. 
 
+## Service
+
+A systemd service is provided `batmon.service`. Feel free to modify it to change thresholds or other settings.
+
+```bash
+sudo install -m 0644 batmon.service /lib/systemd/user/
+systemctl --user enable --now batmon.service
+```
+
 ## Usage
 
 ```bash
