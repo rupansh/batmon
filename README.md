@@ -11,7 +11,22 @@ acpi events don't work properly for my laptop, and most of the polling implement
 who doesn't like messing with Rust futures?  
 I ended up adding other backends too
 
+## Backends
+
+### Udev
+
+This is the default backend, this should be fine for most laptops
+
+### Acpi
+
+Subscribe to the kernel's netlink socket for ACPI events, This may not work if udev events aren't working for you, but worth trying
+
+### Polling
+
+Use this if neither Udev nor Acpi backends work for you. 
+
 ## Usage
 
 ```bash
 batman --help
+```
