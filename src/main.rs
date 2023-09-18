@@ -27,9 +27,18 @@ async fn stream_loop<E: Error>(
     tokio::pin!(stream);
 
     let mut adapter_connected = false;
+    let mut prev_bat_prio = None;
     while let Some(event) = stream.next().await.transpose().unwrap() {
         let priority = match event {
-            BatEvent::Battery(lvl) if !adapter_connected => threshold.priority(lvl),
+            BatEvent::Battery(lvl) if !adapter_connected => {
+                let prio = threshold.priority(lvl);
+                // Skip if we've already sent a notification with the same priority
+                if prio == prev_bat_prio {
+                    continue;
+                }
+                prev_bat_prio = prio;
+                prio
+            }
             BatEvent::Adapter(AdapterStatus::Connected) => {
                 adapter_connected = true;
                 Some(EvPriority::Low)
