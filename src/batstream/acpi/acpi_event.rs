@@ -1,9 +1,13 @@
 // Copyright 2023 developers of the `batmon` project
 // SPDX-License-Identifier: MPL-2.0
 
-use std::ffi::{c_char, CStr};
+use std::{
+    ffi::{c_char, CStr},
+    str::FromStr,
+};
 
 use arrayvec::ArrayString;
+use bytemuck::{must_cast_ref, AnyBitPattern};
 use netlink_packet_generic::{GenlFamily, GenlHeader};
 use netlink_packet_utils::{
     nla::{NlaBuffer, NlasIterator},
@@ -59,6 +63,7 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for AcpiGenlAttr {
     }
 }
 
+#[derive(Clone, Copy, AnyBitPattern)]
 #[repr(C)]
 struct RawAcpiGenlEvent {
     device_class: [c_char; 20],
@@ -84,22 +89,17 @@ impl<'a> TryFrom<&'a [u8]> for AcpiGenlEvent {
     type Error = DecodeError;
 
     fn try_from(value: &'a [u8]) -> Result<Self, Self::Error> {
-        assert!(value.len() == std::mem::size_of::<RawAcpiGenlEvent>());
-        let (device_class, kind, data) = unsafe {
-            let raw = value.as_ptr() as *const RawAcpiGenlEvent;
-            let dev_c = CStr::from_ptr(&(*raw).device_class as *const c_char);
-            let kind = (*raw).kind;
-            let data = (*raw).data;
-            (dev_c, kind, data)
-        };
-        let device_class = device_class
+        let raw: &RawAcpiGenlEvent = bytemuck::from_bytes(value);
+        let devc_bytes = must_cast_ref::<_, [u8; 20]>(&raw.device_class);
+        let devc = CStr::from_bytes_until_nul(devc_bytes)
+            .map_err(|_| DecodeError::from("device_class is not null terminated"))?
             .to_str()
             .map_err(|_| DecodeError::from("device_class is not valid utf8"))?;
 
         Ok(Self {
-            device_class: ArrayString::from(device_class).expect("device_class is not valid utf8?"),
-            kind,
-            data,
+            device_class: ArrayString::from_str(devc).expect("[BUG] device_clas.len() > 20?!"),
+            kind: raw.kind,
+            data: raw.data,
         })
     }
 }
