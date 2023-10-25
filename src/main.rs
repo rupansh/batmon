@@ -39,12 +39,9 @@ async fn stream_loop<E: Error>(
                 prev_bat_prio = prio;
                 prio
             }
-            BatEvent::Adapter(AdapterStatus::Connected) => {
-                adapter_connected = true;
-                Some(EvPriority::Low)
-            }
-            BatEvent::Adapter(AdapterStatus::Disconnected) => {
-                adapter_connected = false;
+            BatEvent::Adapter(status) => {
+                adapter_connected = status == AdapterStatus::Connected;
+                prev_bat_prio = None;
                 Some(EvPriority::Low)
             }
             _ => None,

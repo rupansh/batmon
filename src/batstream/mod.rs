@@ -12,7 +12,7 @@ use bounded_integer::BoundedU8;
 
 pub type BatLvl = BoundedU8<0, 100>;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdapterStatus {
     Connected,
     Disconnected,
