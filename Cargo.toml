@@ -23,6 +23,6 @@ netlink-packet-core = "0.7.0"
 futures-channel = "0.3.28"
 arrayvec = "0.7.4"
 netlink-packet-utils = "0.5.2"
-env_logger = "0.10.0"
+env_logger = "0.10.2"
 thiserror = "1.0.44"
 bytemuck = { version = "1.14.0", features = ["derive", "must_cast"] }
