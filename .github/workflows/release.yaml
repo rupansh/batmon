@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: ${{ github.event.repository.name }}
+            asset_name: ${{ github.event.repository.name }}-linux-amd64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev
+      - name: Build release
+        run: cargo build --release
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.2
+        with:
+          packages: libudev-dev
+          version: 1.0
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.asset_name }}
+          path: target/release/${{ matrix.artifact_name }}
