@@ -17,11 +17,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.6
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v1.0.6
         with:
-          toolchain: stable
+          toolchain: nightly
+          components: rustfmt, clippy
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libudev-dev
       - name: Build release
@@ -32,7 +33,7 @@ jobs:
           packages: libudev-dev
           version: 1.0
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.3.3
         with:
           name: ${{ matrix.asset_name }}
           path: target/release/${{ matrix.artifact_name }}
