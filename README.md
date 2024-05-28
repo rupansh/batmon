@@ -38,5 +38,5 @@ systemctl --user enable --now batmon.service
 ## Usage
 
 ```bash
-batman --help
+batmon --help
 ```
