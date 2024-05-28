@@ -7,9 +7,9 @@ Just another battery monitor for Linux.
 
 ## Why
 
-acpi events don't work properly for my laptop, and most of the polling implementations look pretty boring.  
-who doesn't like messing with Rust futures?  
-I ended up adding other backends too
+ACPI events doesn't work properly for my laptop, and most of the polling implementations look pretty boring.  
+Who doesn't like messing with Rust futures?  
+I ended up adding other backends too.
 
 ## Backends
 
@@ -17,7 +17,7 @@ I ended up adding other backends too
 
 This is the default backend, this should be fine for most laptops
 
-### Acpi
+### ACPI
 
 Subscribe to the kernel's netlink socket for ACPI events, This may not work if udev events aren't working for you, but worth trying
 
@@ -27,7 +27,7 @@ Use this if neither Udev nor Acpi backends work for you.
 
 ## Service
 
-A systemd service is provided `batmon.service`. Feel free to modify it to change thresholds or other settings.
+A systemd service `batmon.service` has been provided. Feel free to modify it to change thresholds or other settings.
 
 ```bash
 cargo install --path .
