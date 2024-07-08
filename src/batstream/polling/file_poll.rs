@@ -8,32 +8,40 @@ use std::{
     time::Duration,
 };
 
+use futs::*;
 use futures_lite::{ready, Future, Stream};
 use pin_project_lite::pin_project;
-use tokio::{
-    fs::File,
-    io::{AsyncReadExt, AsyncSeekExt},
-    time,
-};
+use tokio::fs::File;
 
 type ReadOut = (File, Vec<u8>);
-type ReadFut = impl Future<Output = ReadOut>;
-type SleepFut = impl Future<Output = File>;
 
-fn read_file(mut file: File) -> ReadFut {
-    async {
-        let mut out = Vec::new();
-        out.reserve_exact(6);
-        file.read_to_end(&mut out).await.expect("failed to read fd");
-        file.rewind().await.expect("failed to rewind fd");
-        (file, out)
+mod futs {
+    use futures_lite::Future;
+    use std::time::Duration;
+    use tokio::{
+        fs::File,
+        io::{AsyncReadExt, AsyncSeekExt},
+        time,
+    };
+
+    pub type ReadFut = impl Future<Output = super::ReadOut>;
+    pub type SleepFut = impl Future<Output = File>;
+
+    pub fn read_file(mut file: File) -> ReadFut {
+        async {
+            let mut out = Vec::new();
+            out.reserve_exact(6);
+            file.read_to_end(&mut out).await.expect("failed to read fd");
+            file.rewind().await.expect("failed to rewind fd");
+            (file, out)
+        }
     }
-}
 
-fn identity_sleep(interval: Duration, file: File) -> SleepFut {
-    async move {
-        time::sleep(interval).await;
-        file
+    pub fn identity_sleep(interval: Duration, file: File) -> SleepFut {
+        async move {
+            time::sleep(interval).await;
+            file
+        }
     }
 }
 

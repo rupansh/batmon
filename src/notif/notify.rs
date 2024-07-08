@@ -3,8 +3,7 @@
 
 use std::time::Duration;
 
-use futures_lite::Future;
-use notify_rust::{error::Error as NotifyError, Notification, Urgency};
+use notify_rust::{Notification, Urgency};
 
 use crate::{
     batstream::{AdapterStatus, BatEvent},
@@ -12,6 +11,7 @@ use crate::{
 };
 
 use super::EvConsumer;
+pub use futs::NotifFut;
 
 const NOTIFICATION_TIMOUT: Duration = Duration::from_secs(5);
 
@@ -63,12 +63,16 @@ impl NotifyConsumer {
     }
 }
 
-pub type NotifFut = impl Future<Output = Result<(), NotifyError>>;
+mod futs {
+    use futures_lite::Future;
+    use notify_rust::{error::Error, Notification};
+    pub type NotifFut = impl Future<Output = Result<(), Error>>;
 
-fn show_notification(notif: Notification) -> NotifFut {
-    async move {
-        _ = notif.show_async().await?;
-        Ok(())
+    pub fn show_notification(notif: Notification) -> NotifFut {
+        async move {
+            _ = notif.show_async().await?;
+            Ok(())
+        }
     }
 }
 
@@ -85,6 +89,6 @@ impl EvConsumer for NotifyConsumer {
             .urgency(info.urgency)
             .timeout(NOTIFICATION_TIMOUT)
             .finalize();
-        show_notification(notif)
+        futs::show_notification(notif)
     }
 }
