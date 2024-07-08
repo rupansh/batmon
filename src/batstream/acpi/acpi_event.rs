@@ -49,6 +49,7 @@ impl TryInto<AcpiGenlCmd> for u8 {
 
 #[derive(Debug, Clone)]
 pub enum AcpiGenlAttr {
+    #[allow(unused)]
     Unspec(Vec<u8>),
     Event(AcpiGenlEvent),
 }
@@ -75,6 +76,7 @@ struct RawAcpiGenlEvent {
 #[derive(Debug, Clone)]
 pub struct AcpiGenlEvent {
     device_class: ArrayString<20>,
+    #[allow(unused)]
     pub kind: u32,
     pub data: u32,
 }
