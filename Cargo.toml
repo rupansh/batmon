@@ -20,7 +20,7 @@ clap = { version = "4.5.9", features = ["derive"] }
 netlink-proto = "0.11.3"
 netlink-packet-generic = "0.3.3"
 netlink-packet-core = "0.7.0"
-futures-channel = "0.3.28"
+futures-channel = "0.3.30"
 arrayvec = "0.7.4"
 netlink-packet-utils = "0.5.2"
 env_logger = "0.10.2"
