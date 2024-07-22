@@ -816,9 +816,9 @@ checksum = "b06a4cde4c0f271a446782e3eff8de789548ce57dbc8eca9292c27f4a42004b4"
 
 [[package]]
 name = "mac-notification-sys"
-version = "0.5.6"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e72d50edb17756489e79d52eb146927bec8eba9dd48faadf9ef08bca3791ad5"
+checksum = "51fca4d74ff9dbaac16a01b924bc3693fa2bba0862c2c633abc73f9a8ea21f64"
 dependencies = [
  "cc",
  "dirs-next",
@@ -949,9 +949,9 @@ dependencies = [
 
 [[package]]
 name = "notify-rust"
-version = "4.8.0"
+version = "4.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bfa211d18e360f08e36c364308f394b5eb23a6629150690e109a916dc6f610e"
+checksum = "827c5edfa80235ded4ab3fe8e9dc619b4f866ef16fe9b1c6b8a7f8692c0f2226"
 dependencies = [
  "log",
  "mac-notification-sys",
