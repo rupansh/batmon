@@ -10,7 +10,7 @@ description = "Just another battery monitor for Linux"
 
 [dependencies]
 bounded-integer = { version = "0.5.7", features = ["std", "types"] }
-futures-lite = "1.13.0"
+futures-lite = "2.0.0"
 tokio-udev = "0.9.1"
 tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread", "net", "time", "fs", "io-util"]}
 const_format = "0.2.31"
