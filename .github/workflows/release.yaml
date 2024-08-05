@@ -31,7 +31,7 @@ jobs:
           packages: libudev-dev
           version: 1.0
       - name: Upload artifact
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.3.5
         with:
           name: ${{ matrix.asset_name }}
           path: target/release/${{ matrix.artifact_name }}
