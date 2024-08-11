@@ -1,0 +1,9 @@
+# This is an example configuration file for the batmon project.
+
+battery = "BAT1"
+adapter = "ACAD"
+low = 25
+very_low = 10
+critical = 5
+backend = "Polling"
+polling_interval = 10
