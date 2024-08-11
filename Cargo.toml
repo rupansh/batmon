@@ -26,3 +26,6 @@ netlink-packet-utils = "0.5.2"
 env_logger = "0.10.2"
 thiserror = "1.0.55"
 bytemuck = { version = "1.16.1", features = ["derive", "must_cast"] }
+serde = { version = "1.0.204", features = ["derive"] }
+toml = "0.8.16"
+dirs = "5.0.1"

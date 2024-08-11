@@ -60,6 +60,8 @@ async fn stream_loop<E: Error>(
 async fn main() {
     env_logger::init();
     let args = Args::parse();
+    let config = args.load_config();
+    let args = args.merge_with_config(config);
     let consumer = NotifyConsumer::new("batmon".into());
     let threshold = PriorityThreshold {
         low: args.low,
