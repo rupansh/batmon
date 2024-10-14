@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libudev-dev
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.7.3
+        uses: Swatinem/rust-cache@v2.7.5
       - name: Lint
         run: cargo clippy
       - name: Build
