@@ -3,12 +3,14 @@
 
 use std::error::Error;
 
-use futures_lite::Future;
-
 use crate::{batstream::BatEvent, priority::EvPriority};
 
+#[cfg(feature = "mock-notifications")]
+pub mod logger;
+#[cfg(not(feature = "mock-notifications"))]
 pub mod notify;
 
+#[derive(Debug)]
 pub struct Notification {
     event: BatEvent,
     priority: EvPriority,
@@ -20,10 +22,8 @@ impl Notification {
     }
 }
 
-pub trait EvConsumer {
+pub(crate) trait EvConsumer {
     type Error: Error;
-    type Res<'a>: Future<Output = Result<(), Self::Error>> + 'a
-    where
-        Self: 'a;
-    fn consume(&self, notif: Notification) -> Self::Res<'_>;
+
+    async fn consume(&self, notif: Notification) -> Result<(), Self::Error>;
 }

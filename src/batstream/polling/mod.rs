@@ -17,26 +17,33 @@ use futures_lite::{ready, stream::Skip, Stream, StreamExt};
 use pin_project_lite::pin_project;
 use tokio::fs::File;
 
-use self::file_poll::FilePollerCache;
+use self::file_poll::file_poller_cache;
 
 use super::{sysfs::BAT_BASE_PATH, AdapterStatus, BatEvent, BatLvl};
 
 pin_project! {
-    /// Polling based stream implementation
-    /// polls the sysfs files every N seconds
-    pub struct PollingStream {
+    pub struct PollingStream<FilePollS> {
         #[pin]
-        battery_state: FilePollerCache,
+        battery_state: FilePollS,
         #[pin]
-        adapter_state: Skip<FilePollerCache>,
+        adapter_state: Skip<FilePollS>,
     }
 }
 
-impl PollingStream {
+pub async fn polling_stream(
+    interval: Duration,
+    battery_device: impl AsRef<Path>,
+    adapter_device: impl AsRef<Path>,
+) -> io::Result<PollingStream<impl Stream<Item = Vec<u8>>>> {
+    PollingStream::new(interval, battery_device, adapter_device, file_poller_cache).await
+}
+
+impl<S: Stream> PollingStream<S> {
     pub async fn new(
         interval: Duration,
         battery_device: impl AsRef<Path>,
         adapter_device: impl AsRef<Path>,
+        stream_gen: fn(Duration, File) -> S,
     ) -> io::Result<Self> {
         let mut battery_path = Path::new(BAT_BASE_PATH).join(battery_device);
         battery_path.push("capacity");
@@ -47,8 +54,8 @@ impl PollingStream {
         let adapter = File::open(adapter_path).await?;
 
         Ok(Self {
-            battery_state: FilePollerCache::new(interval, battery),
-            adapter_state: FilePollerCache::new(interval, adapter).skip(1),
+            battery_state: stream_gen(interval, battery),
+            adapter_state: stream_gen(interval, adapter).skip(1),
         })
     }
 }
@@ -88,7 +95,7 @@ fn handle_item<T: Stream<Item = Vec<u8>>, R>(
     Poll::Ready(Some(parser(item)))
 }
 
-impl Stream for PollingStream {
+impl<S: Stream<Item = Vec<u8>>> Stream for PollingStream<S> {
     type Item = io::Result<BatEvent>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {

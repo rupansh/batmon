@@ -11,7 +11,6 @@ use crate::{
 };
 
 use super::EvConsumer;
-pub use futs::NotifFut;
 
 const NOTIFICATION_TIMOUT: Duration = Duration::from_secs(5);
 
@@ -63,24 +62,10 @@ impl NotifyConsumer {
     }
 }
 
-mod futs {
-    use futures_lite::Future;
-    use notify_rust::{error::Error, Notification};
-    pub type NotifFut = impl Future<Output = Result<(), Error>>;
-
-    pub fn show_notification(notif: Notification) -> NotifFut {
-        async move {
-            _ = notif.show_async().await?;
-            Ok(())
-        }
-    }
-}
-
 impl EvConsumer for NotifyConsumer {
     type Error = notify_rust::error::Error;
-    type Res<'a> = NotifFut;
 
-    fn consume(&self, notif: super::Notification) -> NotifFut {
+    async fn consume(&self, notif: super::Notification) -> Result<(), Self::Error> {
         let info = EvInfo::from(notif);
         let notif = Notification::new()
             .appname(&self.appname)
@@ -89,6 +74,8 @@ impl EvConsumer for NotifyConsumer {
             .urgency(info.urgency)
             .timeout(NOTIFICATION_TIMOUT)
             .finalize();
-        futs::show_notification(notif)
+        notif.show_async().await?;
+
+        Ok(())
     }
 }

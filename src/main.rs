@@ -1,14 +1,13 @@
-#![feature(type_alias_impl_trait)]
 // Copyright 2023 developers of the `batmon` project
 // SPDX-License-Identifier: MPL-2.0
 
 use std::{error::Error, time::Duration};
 
 use args::Args;
-use batstream::{acpi::AcpiStream, polling::PollingStream, udev::UdevStream, BatEvent};
+use batstream::{acpi::AcpiStream, polling::polling_stream, udev::UdevStream, BatEvent};
 use clap::Parser;
 use futures_lite::{Stream, StreamExt};
-use notif::notify::NotifyConsumer;
+// use notif::notify::NotifyConsumer;
 use priority::PriorityThreshold;
 
 use crate::{batstream::AdapterStatus, notif::Notification, priority::EvPriority};
@@ -60,7 +59,17 @@ async fn stream_loop<E: Error>(
 async fn main() {
     env_logger::init();
     let args = Args::parse();
-    let consumer = NotifyConsumer::new("batmon".into());
+    let consumer = {
+        #[cfg(feature = "mock-notifications")]
+        {
+            notif::logger::LoggerNotifier
+        }
+        #[cfg(not(feature = "mock-notifications"))]
+        {
+            use notif::notify::NotifyConsumer;
+            NotifyConsumer::new("batmon".into())
+        }
+    };
     let threshold = PriorityThreshold {
         low: args.low,
         normal: args.very_low,
@@ -70,7 +79,7 @@ async fn main() {
     match args.backend {
         args::Backend::Polling => {
             let interval = Duration::from_secs(args.polling_interval);
-            let stream = PollingStream::new(interval, args.battery, args.adapter)
+            let stream = polling_stream(interval, args.battery, args.adapter)
                 .await
                 .unwrap();
             stream_loop(stream, consumer, threshold).await;

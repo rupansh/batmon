@@ -111,7 +111,7 @@ fn find_acpi_group_id(attrs: Vec<Vec<McastGrpAttrs>>) -> Option<u32> {
 }
 
 pub async fn get_family_and_group() -> Result<(u16, u32)> {
-    let mut handle = spawn_connection()?;
+    let handle = spawn_connection()?;
     let req = family_and_group_request();
     let mut req_rx = handle.request(req, SocketAddr::new(0, 0))?;
 

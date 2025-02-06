@@ -4,7 +4,7 @@
 use crate::batstream::BatLvl;
 
 /// Event Priority
-#[derive(Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Debug)]
 pub enum EvPriority {
     Low,
     Normal,
